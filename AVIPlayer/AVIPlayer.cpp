@@ -43,6 +43,24 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,
     {
         return FALSE;
     }
+
+    DWORD i, fccType = ICTYPE_VIDEO;
+    ICINFO icinfo;
+    BITMAPINFO biIn = { sizeof(biIn), 10, 10, 1, 24, BI_RGB, };
+    WCHAR info[0x1000];
+    auto curi = info;
+    for (i = 0; ICInfo(fccType, i, &icinfo); i++)
+    {
+        HIC hic = ICOpen(icinfo.fccType, icinfo.fccHandler, ICMODE_QUERY);
+        if (!hic) continue;
+
+        // Find out the compressor name. 
+        ICGetInfo(hic, &icinfo, sizeof(icinfo));
+
+        curi += wsprintfW(curi, L"%08X\t%s\r\n", icinfo.fccHandler, icinfo.szDescription);
+        ICClose(hic);
+    }
+    OutputDebugStringW(info);
   
     m_xAvi.Init();
     m_xAvi.Create(g_pd3dDevice, NULL, ".\\wemade.dat", FALSE);
@@ -104,14 +122,14 @@ ATOM MyRegisterClass(HINSTANCE hInstance)
 
     wcex.cbSize = sizeof(WNDCLASSEX);
 
-    wcex.style          = CS_HREDRAW | CS_VREDRAW;
+    wcex.style          = 0;
     wcex.lpfnWndProc    = WndProc;
     wcex.cbClsExtra     = 0;
     wcex.cbWndExtra     = 0;
     wcex.hInstance      = hInstance;
     wcex.hIcon          = LoadIcon(hInstance, MAKEINTRESOURCE(IDI_AVIPLAYER));
     wcex.hCursor        = LoadCursor(nullptr, IDC_ARROW);
-    wcex.hbrBackground  = (HBRUSH)(COLOR_WINDOW+1);
+    wcex.hbrBackground  = NULL;
     wcex.lpszMenuName   = MAKEINTRESOURCEW(IDC_AVIPLAYER);
     wcex.lpszClassName  = szWindowClass;
     wcex.hIconSm        = LoadIcon(wcex.hInstance, MAKEINTRESOURCE(IDI_SMALL));
